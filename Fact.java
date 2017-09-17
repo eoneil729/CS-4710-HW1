@@ -20,7 +20,6 @@ public class Fact {
 		this.conditionsOf = conditionsOf;
 		this.consequentsOf = consequentsOf;
 		this.isRoot = isRoot;
-
 	}
 
 	public boolean getTruthValue() {
@@ -70,5 +69,5 @@ public class Fact {
 	public void setIsRoot() {
 		this.isRoot = isRoot;
 	}
-
+	
 }

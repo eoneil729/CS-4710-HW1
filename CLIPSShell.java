@@ -18,9 +18,9 @@ public class CLIPSShell {
 
 			// 	} else if (inputArr[2].equals("->")) {
 			if (inputArr[2].equals("->")) {
-				createNewRule(inputArr[1], inputArr[3]);
+					createNewRule(inputArr[1], inputArr[3]);
+				}
 			}
-		}
 		// } else if (input.equals("List")) {
 
 		// } else if (input.equals("Learn")) {
@@ -36,11 +36,20 @@ public class CLIPSShell {
 	public void createNewRule(String condition, String consequence) {
 		Rule newRule = new Rule(parseByOperators(condition), parseByOperators(consequence));
 		rulesList.add(newRule);
+		//TODO: update conditions and consequents of the facts affected
 	}
-
+	
+	public void createNewRootFact(String variableName, String data) {
+		Fact f = new Fact(false, variableName, data,  )
+	}
+	
+	public void updateConditionsAndConsequents (Rule r) {
+		
+	}
+	
 
 	public static List<String> parseByOperators(String str) {
-		List<String> accumulator = new ArrayList<String>();
+		List<String> accumulator = new ArrayList<>();
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == '&' || str.charAt(i) == '|' || str.charAt(i) == '!') {
@@ -61,13 +70,13 @@ public class CLIPSShell {
 		}
 		return accumulator;
 	}
-
+	
 	public static boolean evaluateTruthValue(Rule rule) {
 		return false;
 	}
 
 	public static void main(String[] args) {
-		String fun = "AF!VD!!FDD!";
+		String fun = "F!!D";
 		List<String> fun2 = parseByOperators(fun);
 		for(int i = 0; i < fun2.size(); i++){
 			System.out.println(i+": " + fun2.get(i));
