@@ -22,7 +22,7 @@ public class Fact {
 		this.isRoot = isRoot;
 
 	}
-
+//hello
 	public boolean getTruthValue() {
 		return truthValue;
 	}
