@@ -13,7 +13,7 @@ public class Rule {
 		return conditions;
 	}
 
-	public void setConditions() {
+	public void setConditions(List<String> conditions) {
 		this.conditions = conditions;
 	}
 
@@ -21,7 +21,7 @@ public class Rule {
 		return consequences;
 	}
 
-	public void setConsequences() {
+	public void setConsequences(List<String> consequences) {
 		this.consequences = consequences;
 	}
 

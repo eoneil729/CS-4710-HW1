@@ -26,7 +26,7 @@ public class Fact {
 		return truthValue;
 	}
 
-	public void setTruthValue() {
+	public void setTruthValue(boolean truthValue) {
 		this.truthValue = truthValue;
 	}
 
@@ -34,7 +34,7 @@ public class Fact {
 		return variableName;
 	}
 
-	public void setVariableName() {
+	public void setVariableName(String variableName) {
 		this.variableName = variableName;
 	}
 
@@ -42,7 +42,7 @@ public class Fact {
 		return data;
 	}
 
-	public void setData() {
+	public void setData(String data) {
 		this.data = data;
 	}
 
@@ -50,7 +50,7 @@ public class Fact {
 		return conditionsOf;
 	}
 
-	public void setConditionsOf() {
+	public void setConditionsOf(List<Rule> conditionsOf) {
 		this.conditionsOf = conditionsOf;
 	}
 
@@ -58,7 +58,7 @@ public class Fact {
 		return consequentsOf;
 	}
 
-	public void setConsequentsOf() {
+	public void setConsequentsOf(List<Rule> consequentsOf) {
 		this.consequentsOf = consequentsOf;
 	}
 
@@ -66,7 +66,7 @@ public class Fact {
 		return isRoot;
 	}
 
-	public void setIsRoot() {
+	public void setIsRoot(boolean isRoot) {
 		this.isRoot = isRoot;
 	}
 	
