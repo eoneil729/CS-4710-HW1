@@ -21,7 +21,7 @@ public class Fact {
 		this.consequentsOf = consequentsOf;
 		this.isRoot = isRoot;
 	}
-//hello
+
 	public boolean getTruthValue() {
 		return truthValue;
 	}

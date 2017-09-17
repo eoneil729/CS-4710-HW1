@@ -36,11 +36,35 @@ public class CLIPSShell {
 	public void createNewRule(String condition, String consequence) {
 		Rule newRule = new Rule(parseByOperators(condition), parseByOperators(consequence));
 		rulesList.add(newRule);
-		//TODO: update conditions and consequents of the facts affected
+		for(int i = 0; i < parseByOperators(condition).size(); i++){
+			for(int j = 0; j < factList.size(); j++) {
+				if(parseByOperators(conditions).get(i).equals(factList.get(j)) factList.get(j).setConditionsOf()
+			}
+		}
+		for(int i = 0; i < parseByOperators(consequence).size(); i++){
+			
+		}
 	}
 	
 	public void createNewRootFact(String variableName, String data) {
-		Fact f = new Fact(false, variableName, data,  )
+		if(factList.contains(variableName)) {
+			System.out.println("Variable name already used")
+		} else {
+		List<String> conditionsOf = new List<String>;
+		List<String> consequentsOf = new List<String>;
+		for(int i = 0; i < rulesList.size(); i++) { //iterates through rulesList
+			for(int j = 0; j < rulesList.get(i).getConsequences().size(); j++) { //iterates through the consequences of a specific rule
+				String symbol = rulesList.get(i).getConsequences().get(j);
+				if(variableName.equals(symbol)) consequentsOf.add(rulesList.get(i)); //if this new fact is in the consequence, add the rule to consequentsOf
+			}
+			for(int k = 0; k < rulesList.get(i).getConditions().size(); j++) { //same as above except for conditions
+				String symbol = rulesList.get(i).getConditions().get(j);
+				if(variableName.equals(symbol)) conditionsOf.add(rulesList.get(i));
+			}
+		} //goes through the rulesList to find out conditionsOf and consequentsOf
+		Fact f = new Fact(false, variableName, data, conditionsOf, consequentsOf);
+		factsList.add(f);
+		}
 	}
 	
 	public void updateConditionsAndConsequents (Rule r) {
@@ -76,11 +100,7 @@ public class CLIPSShell {
 	}
 
 	public static void main(String[] args) {
-		String fun = "F!!D";
-		List<String> fun2 = parseByOperators(fun);
-		for(int i = 0; i < fun2.size(); i++){
-			System.out.println(i+": " + fun2.get(i));
-		}
+	rulesList.add("p -> q")
 //		Scanner sc = new Scanner(System.in);
 //		while (sc.hasNext()) {
 //			makeDataStructure(sc.next());
