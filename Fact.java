@@ -22,6 +22,18 @@ public class Fact {
 		this.isRoot = isRoot;
 	}
 
+	public Fact(boolean truthValue,
+				String variableName,
+				String data,
+				List<Rule> conditionsOf,
+				List<Rule> consequentsOf) {
+		this.truthValue = truthValue;
+		this.variableName = variableName;
+		this.data = data;
+		this.conditionsOf = conditionsOf;
+		this.consequentsOf = consequentsOf;
+	}
+
 	public boolean getTruthValue() {
 		return truthValue;
 	}

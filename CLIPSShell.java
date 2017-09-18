@@ -2,8 +2,8 @@ import java.util.*;
 
 
 public class CLIPSShell {
-	public static List<Rule> rulesList;
-	public static List<Fact> factsList;
+	public static List<Rule> rulesList = new ArrayList<Rule>();
+	public static List<Fact> factsList = new ArrayList<Fact>();
 
 	public CLIPSShell() {
 	}
@@ -11,62 +11,62 @@ public class CLIPSShell {
 	public void determineInputInstruction(String input) {
 		if (input.contains("Teach")) {
 			String[] inputArr = input.split(" ");
-			// if (inputArr.length == 5) {
-
-			// } else if (inputArr.length == 4) {
-			 	if (inputArr[2].equals("=")) {
+			if (inputArr.length == 5) {
+				createNewRootFact(inputArr[2], inputArr[4]);
+			} else if (inputArr.length == 4) {
+				if (inputArr[2].equals("=")) {
 					teachTruthValue(inputArr[1], inputArr[3]);
-			// 	} else if (inputArr[2].equals("->")) {
-			if (inputArr[2].equals("->")) {
-					createNewRule(inputArr[1], inputArr[3]);
+				} else if (inputArr[2].equals("->")) {
+					if (inputArr[2].equals("->")) {
+						createNewRule(inputArr[1], inputArr[3]);
+					}
 				}
 			}
 		} else if (input.equals("List")) {
-			listVariables();
-		}
-		// } else if (input.equals("Learn")) {
+				listVariables();
+			}
+			// } else if (input.equals("Learn")) {
 
-		// } else if (input.contains("Query")) {
+			// } else if (input.contains("Query")) {
 
-		// } else if (input.contains("Why")) {
-
-
+			// } else if (input.contains("Why")) {
 	}
 
 	public void createNewRule(String condition, String consequence) {
 		Rule newRule = new Rule(parseByOperators(condition), parseByOperators(consequence));
 		rulesList.add(newRule);
 		for(int i = 0; i < parseByOperators(condition).size(); i++){
-			for(int j = 0; j < factList.size(); j++) {
-				if(parseByOperators(conditions).get(i).equals(factList.get(j)) factList.get(j).setConditionsOf()
+			for(int j = 0; j < factsList.size(); j++) {
+				if(parseByOperators(condition).get(i).equals(factsList.get(j)))
+					factsList.get(j).setConditionsOf(rulesList);
 			}
 		}
 		for(int i = 0; i < parseByOperators(consequence).size(); i++){
-			
+
 		}
 	}
-	
+
 	public void createNewRootFact(String variableName, String data) {
-		if(factList.contains(variableName)) {
-			System.out.println("Variable name already used")
+		if(factsList.contains(variableName)) {
+			System.out.println("Variable name already used");
 		} else {
-		List<String> conditionsOf = new List<String>;
-		List<String> consequentsOf = new List<String>;
-		for(int i = 0; i < rulesList.size(); i++) { //iterates through rulesList
-			for(int j = 0; j < rulesList.get(i).getConsequences().size(); j++) { //iterates through the consequences of a specific rule
-				String symbol = rulesList.get(i).getConsequences().get(j);
-				if(variableName.equals(symbol)) consequentsOf.add(rulesList.get(i)); //if this new fact is in the consequence, add the rule to consequentsOf
-			}
-			for(int k = 0; k < rulesList.get(i).getConditions().size(); j++) { //same as above except for conditions
-				String symbol = rulesList.get(i).getConditions().get(j);
-				if(variableName.equals(symbol)) conditionsOf.add(rulesList.get(i));
-			}
-		} //goes through the rulesList to find out conditionsOf and consequentsOf
-		Fact f = new Fact(false, variableName, data, conditionsOf, consequentsOf);
-		factsList.add(f);
+			List<Rule> conditionsOf = new ArrayList<Rule>();
+			List<Rule> consequentsOf = new ArrayList<Rule>();
+			for(int i = 0; i < rulesList.size(); i++) { //iterates through rulesList
+				for(int j = 0; j < rulesList.get(i).getConsequences().size(); j++) { //iterates through the consequences of a specific rule
+					String symbol = rulesList.get(i).getConsequences().get(j);
+					if(variableName.equals(symbol)) consequentsOf.add(rulesList.get(i)); //if this new fact is in the consequence, add the rule to consequentsOf
+				}
+				for(int k = 0; k < rulesList.get(i).getConditions().size(); k++) { //same as above except for conditions
+					String symbol = rulesList.get(i).getConditions().get(k);
+					if(variableName.equals(symbol)) conditionsOf.add(rulesList.get(i));
+				}
+			} //goes through the rulesList to find out conditionsOf and consequentsOf
+			Fact f = new Fact(false, variableName, data, conditionsOf, consequentsOf);
+			factsList.add(f);
 		}
 	}
-	
+
 	public void updateConditionsAndConsequents (Rule r) {
 
 	}
@@ -160,22 +160,17 @@ public class CLIPSShell {
 			}
 		}
 	}
-	
+
 	public static boolean evaluateTruthValue(Rule rule) {
 		return false;
 	}
 
 	public static void main(String[] args) {
 		CLIPSShell shell = new CLIPSShell();
-		String fun = "F!!D";
-		List<String> fun2 = parseByOperators(fun);
-		for(int i = 0; i < fun2.size(); i++){
-			System.out.println(i+": " + fun2.get(i));
-		}
 		Scanner sc = new Scanner(System.in);
-		while (sc.hasNext()) {
-			shell.determineInputInstruction(sc.next());
-			break;
+		String line = "";
+		while (sc.hasNextLine() && !(line = sc.nextLine()).equals("Exit")) {
+			shell.determineInputInstruction(line);
 		}
 	}
 }
