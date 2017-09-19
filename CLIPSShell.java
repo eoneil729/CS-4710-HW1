@@ -1,5 +1,10 @@
-import java.util.*;
+/**
+ * CS 4710 HW 1
+ * Pak Hin Luu - pl4me
+ * Ellie O'Neil - ebo6jt
+ */
 
+import java.util.*;
 
 public class CLIPSShell {
 	public static List<Rule> rulesList = new ArrayList<Rule>();
@@ -23,13 +28,16 @@ public class CLIPSShell {
 				}
 			}
 		} else if (input.equals("List")) {
-				listVariables();
-			}
-			// } else if (input.equals("Learn")) {
-
-			// } else if (input.contains("Query")) {
-
-			// } else if (input.contains("Why")) {
+			listVariables();
+		} else if (input.equals("Learn")) {
+			learn();
+		} else if (input.contains("Query")) {
+			String[] inputArr = input.split("[\\(\\)]");
+			query(inputArr[1]);
+		} else if (input.contains("Why")) {
+			String[] inputArr = input.split("[\\(\\)]");
+			why(inputArr[1]);
+		}
 	}
 
 	public void createNewRule(String condition, String consequence) {
@@ -41,7 +49,7 @@ public class CLIPSShell {
 					factsList.get(j).setConditionsOf(rulesList);
 			}
 		}
-		for(int i = 0; i < parseByOperators(consequence).size(); i++){
+		for(int i = 0; i < parseByOperators(consequence).size(); i++) {
 
 		}
 	}
@@ -71,6 +79,10 @@ public class CLIPSShell {
 
 	}
 
+	/**
+	 * Sets the truth value of a root variable based on user input and calls getAllSubconditions
+	 * to reset all learned variables that are subconditions of the root variable to false
+	 */
 	public void teachTruthValue(String root_var, String bool) {
 		for (int i = 0; i < factsList.size(); i++) {
 			if (factsList.get(i).getVariableName().equals(root_var) && !factsList.get(i).getIsRoot()) {
@@ -87,6 +99,11 @@ public class CLIPSShell {
 		}
 	}
 
+	/**
+	 * Recursive function used in teachTruthValue() to gather all the subconditions of a condition
+	 * Sets these subconditions to false because they are learned variables of a root variable that
+	 * we have changed the truth value of
+	 */
 	public void getAllSubconditions(Fact f) {
 		if (f.getConditionsOf().isEmpty()) {
 			return;
@@ -104,17 +121,21 @@ public class CLIPSShell {
 		}
 	}
 
+	/**
+	 * Takes in a String of variables and operations and parses out each individual condition/consequence
+	 * in order to add them to rulesList and factsList
+	 */
 	public static List<String> parseByOperators(String str) {
 		List<String> accumulator = new ArrayList<String>();
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == '&' || str.charAt(i) == '|' || str.charAt(i) == '!') {
 				if (str.charAt(i-1) == '&' || str.charAt(i-1) == '|' || str.charAt(i-1) == '!') {
-					accumulator.add(""+str.charAt(i));
+					accumulator.add("" + str.charAt(i));
 					s = new StringBuilder();
 				} else {
 					accumulator.add(s.toString());
-					accumulator.add(""+str.charAt(i));
+					accumulator.add("" + str.charAt(i));
 					s = new StringBuilder();
 				}
 			} else if (i == str.length() - 1) {
@@ -127,6 +148,9 @@ public class CLIPSShell {
 		return accumulator;
 	}
 
+	/**
+	 * List all variables, facts, and rules that the user has inputted and the system has learned
+	 */
 	public void listVariables() {
 		System.out.println("Root Variables:");
 		if (!factsList.isEmpty()) {
@@ -159,6 +183,18 @@ public class CLIPSShell {
 					System.out.print(sCons + " ");
 			}
 		}
+	}
+
+	public void learn() {
+
+	}
+
+	public void query(String expression) {
+		System.out.println(expression);
+	}
+
+	public void why(String expression) {
+		System.out.println(expression);
 	}
 
 	public static boolean evaluateTruthValue(Rule rule) {
