@@ -54,6 +54,10 @@ public class CLIPSShell {
 		}
 	}
 
+	/**
+	 * Need to fix so it differentiates between root and learned variables
+	 * - I think this should happen in this function
+	 */
 	public void createNewRootFact(String variableName, String data) {
 		if(factsList.contains(variableName)) {
 			System.out.println("Variable name already used");
@@ -156,28 +160,28 @@ public class CLIPSShell {
 		if (!factsList.isEmpty()) {
 			for (Fact f : factsList) {
 				if (f.getIsRoot())
-					System.out.println(f.getVariableName() + " = " + f.getData());
+					System.out.println("\t" + f.getVariableName() + " = " + f.getData());
 			}
 		}
 		System.out.println("Learned Variables:");
 		if (!factsList.isEmpty()) {
 			for (Fact f : factsList) {
 				if (!f.getIsRoot())
-					System.out.println(f.getVariableName() + " = " + f.getData());
+					System.out.println("\t" + f.getVariableName() + " = " + f.getData());
 			}
 		}
 		System.out.println("Facts:");
 		if (!factsList.isEmpty()) {
 			for (Fact f : factsList) {
 				if (f.getIsRoot())
-					System.out.println(f.getVariableName());
+					System.out.println("\t" + f.getVariableName());
 			}
 		}
 		System.out.println("Rules:");
 		if (!rulesList.isEmpty()) {
 			for (Rule r : rulesList) {
 				for (String sCond : r.getConditions())
-					System.out.print(sCond + " ");
+					System.out.print("\t" + sCond + " ");
 				System.out.print(" -> ");
 				for (String sCons : r.getConsequences())
 					System.out.print(sCons + " ");
