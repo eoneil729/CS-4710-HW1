@@ -70,4 +70,17 @@ public class Fact {
 		this.isRoot = isRoot;
 	}
 	
+	public void addToConditionsOf (Rule r) {
+		this.conditionsOf.add(r);
+	}
+	
+	public void addToConsequentsOf (Rule r) {
+		this.consequentsOf.add(r);
+	}
+	
+	public String toString() {
+		String s = ""+ this.variableName + " = " + this.data + "\nConditions of: " + this.conditionsOf + "\nConsequents of: " + this.consequentsOf;
+		return s;
+	}
+	
 }

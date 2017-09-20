@@ -33,16 +33,20 @@ public class CLIPSShell {
 
 	}
 
-	public void createNewRule(String condition, String consequence) {
-		Rule newRule = new Rule(parseByOperators(condition), parseByOperators(consequence));
-		rulesList.add(newRule);
-		for(int i = 0; i < parseByOperators(condition).size(); i++){
-			for(int j = 0; j < factList.size(); j++) {
-				if(parseByOperators(conditions).get(i).equals(factList.get(j)) factList.get(j).setConditionsOf()
+	public void createNewRule(String condition, String consequence) { //put in everything left of -> and right of ->
+		Rule newRule = new Rule(parseByOperators(condition), parseByOperators(consequence)); 
+		rulesList.add(newRule); //add this rule
+		for(int i = 0; i < parseByOperators(condition).size(); i++){ //going through all the facts that is listed in the condition
+			for(int j = 0; j < factList.size(); j++) { //going through all the facts
+				if(parseByOperators(conditions).get(i).equals(factList.get(j)) factList.get(j).addToConditionsOf(newRule);
+				//if a certain symbol in the condition is in the the fact list, add this new rule into that rule's conditions of list
 			}
 		}
-		for(int i = 0; i < parseByOperators(consequence).size(); i++){
-			
+		for(int i = 0; i < parseByOperators(consequence).size(); i++){ //going through all the facts listed in the consequence
+			for(int j = 0; j < factList.size(); j++) { //going through all the facts
+				if(parseByOperators(consequence).get(i).equals(factList.get(j)) factList.get(j).addToConsequentsOf(newRule);
+				//if a certain symbol in the consequence is in the fact list, add this new rule into this fact's consequentsof list 
+			}
 		}
 	}
 	
@@ -65,10 +69,6 @@ public class CLIPSShell {
 		Fact f = new Fact(false, variableName, data, conditionsOf, consequentsOf);
 		factsList.add(f);
 		}
-	}
-	
-	public void updateConditionsAndConsequents (Rule r) {
-
 	}
 
 	public void teachTruthValue(String root_var, String bool) {
@@ -166,16 +166,25 @@ public class CLIPSShell {
 	}
 
 	public static void main(String[] args) {
-		CLIPSShell shell = new CLIPSShell();
-		String fun = "F!!D";
-		List<String> fun2 = parseByOperators(fun);
-		for(int i = 0; i < fun2.size(); i++){
-			System.out.println(i+": " + fun2.get(i));
-		}
-		Scanner sc = new Scanner(System.in);
-		while (sc.hasNext()) {
-			shell.determineInputInstruction(sc.next());
-			break;
-		}
-	}
+//		CLIPSShell shell = new CLIPSShell();
+//		String fun = "F!!D";
+//		List<String> fun2 = parseByOperators(fun);
+//		for(int i = 0; i < fun2.size(); i++){
+//			System.out.println(i+": " + fun2.get(i));
+//		}
+//		Scanner sc = new Scanner(System.in);
+//		while (sc.hasNext()) {
+//			shell.determineInputInstruction(sc.next());
+//			break;
+//		}
+//	}
+		
+		Fact f = new Fact(true, f, "fun",,,true);
+		
+//		public Fact(boolean truthValue,
+//				String variableName,
+//				String data,
+//				List<Rule> conditionsOf,
+//				List<Rule> consequentsOf,
+//				boolean isRoot)
 }

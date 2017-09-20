@@ -24,6 +24,10 @@ public class Rule {
 	public void setConsequences(List<String> consequences) {
 		this.consequences = consequences;
 	}
+	
+	public String toString() {
+		String s = ""+"Conditions: " + conditions + "\nConsequences: " + consequences;
+	}
 
 	public static void main(String[] args) {
 		System.out.println("hi");
