@@ -27,6 +27,7 @@ public class Rule {
 	
 	public String toString() {
 		String s = ""+"Conditions: " + conditions + "\nConsequences: " + consequences;
+		return s;
 	}
 
 	public static void main(String[] args) {
