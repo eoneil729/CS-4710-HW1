@@ -14,8 +14,8 @@ public class CLIPSShell {
 	}
 
 	public void determineInputInstruction(String input) {
-		if (input.contains("Teach")) {
-			String[] inputArr = input.split(" ");
+		String[] inputArr = input.split(" ");
+		if (inputArr[0].equals("Teach")) {
 			if (inputArr.length == 5) {
 				createNewRootFact(inputArr[1], inputArr[2], inputArr[4]);
 			} else if (inputArr.length == 4) {
@@ -27,15 +27,15 @@ public class CLIPSShell {
 					}
 				}
 			}
-		} else if (input.equals("List")) {
+		} else if (inputArr[0].equals("List")) {
 			listVariables();
-		} else if (input.equals("Learn")) {
+		} else if (inputArr[0].equals("Learn")) {
 			learn();
-		} else if (input.contains("Query")) {
-			List<String> inputList = parseByOperators(input);
+		} else if (inputArr[0].equals("Query")) {
+			List<String> inputList = parseByOperators(inputArr[1]);
 			query(inputList);
-		} else if (input.contains("Why")) {
-			List<String> inputList = parseByOperators(input);
+		} else if (inputArr[0].equals("Why")) {
+			List<String> inputList = parseByOperators(inputArr[1]);
 			why(inputList);
 		}
 	}
@@ -89,7 +89,7 @@ public class CLIPSShell {
 		}
 	}
 
-	public void evaluateTruthValues () {
+	public void evaluateTruthValues() {
 		List<String> listOfOperators = new ArrayList<String>();
 	}
 
@@ -199,34 +199,125 @@ public class CLIPSShell {
 					System.out.print("\t" + sCond + " ");
 				System.out.print(" -> ");
 				for (String sCons : r.getConsequences())
-					System.out.print(sCons + " ");
+					System.out.println(sCons + " ");
 			}
 		}
 	}
 
-	public void learn() {
+	public boolean evaluate(List<String> expression) {
+		Stack<String> myStack = new Stack<String>();
+		boolean truth = false;
+		List<String> sb = new ArrayList<String>();
+		for (int i = 0; i < expression.size(); i++) {
+			myStack.push(expression.get(i));
+			if (expression.get(i).equals(")")) {
+				while (!myStack.peek().equals("(")) {
+					String s = myStack.pop();
+					sb.add(s);
+				}
+				sb.add(myStack.pop());
+				int count = 0;
+				if (sb.contains("&") || sb.contains("|")) {
+					boolean leftBool = false;
+					boolean rightBool = false;
+					if(sb.get(3).equals("true")) {
+						leftBool = true;
+					} else if (sb.get(3).equals("false)")){
+						leftBool = false;
+					}
+					if(sb.get(1).equals("true")) {
+						rightBool = true;
+					} else if (sb.get(1).equals("false)")){
+						rightBool = false;
+					}
+					for (int j = 0; j < factsList.size(); j++) {
+						if (factsList.get(j).getVariableName().equals(sb.get(3))) {
+							count++;
+							leftBool = factsList.get(j).getTruthValue();
+						}
+						if (factsList.get(j).getVariableName().equals(sb.get(1))) {
+							count++;
+							rightBool = factsList.get(j).getTruthValue();
+						}
+					}
+					if (count == 2) {
+						if (sb.get(2).equals("&")) {
+							truth = evalAnd(leftBool, rightBool);
+						} else if (sb.get(2).equals("|")) {
+							truth = evalOr(leftBool, rightBool);
+						}
+					}
+				} else if (sb.contains("!")) {
+					boolean rightBool = false;
+					for (int j = 0; j < factsList.size(); j++) {
+						if (factsList.get(j).getVariableName().equals(sb.get(1))) {
+							count++;
+							rightBool = factsList.get(j).getTruthValue();
+						}
+					}
+					if (count == 1) {
+						truth = evalNot(rightBool);
+					}
+				}
+				String truthString;
+				if (truth)
+					truthString = "true";
+				else
+					truthString = "false";
+				myStack.push(truthString);
+			}
+		}
+		return truth;
+	}
 
+	public boolean evalAnd(boolean left, boolean right) {
+		return left & right;
+	}
+
+	public boolean evalOr(boolean left, boolean right) {
+		return left | right;
+	}
+
+	public boolean evalNot(boolean val) {
+		return !val;
+	}
+
+	// fix setting learnedSomething to false problem
+	public void learn() {
+		boolean learnedSomething = false;
+		boolean conditionTruthValue;
+		int count = 0;
+		do  {
+			for (int i = 0; i < rulesList.size(); i++) {
+				conditionTruthValue = evaluate(rulesList.get(i).getConditions());
+				if (conditionTruthValue) {
+					List<String> consequences = rulesList.get(i).getConsequences();
+					for (int j = 0; j < consequences.size(); j++) {
+						if (factsList.get(j) != null && !factsList.get(j).getTruthValue()) {
+							factsList.get(j).setTruthValue(true);
+							learnedSomething = true;
+						} else {
+							count++;
+						}
+					}
+				}
+			}
+			if (count == rulesList.size()) {
+				learnedSomething = false;
+			}
+			count = 0;
+		} while (learnedSomething);
 	}
 
 	public void query(List<String> expression) {
-		Stack<String> myStack = new Stack<>();
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < expression.size(); i++) {
-			if (expression.get(i).equals("(")) {
-				myStack.push(sb.toString());
-				sb = new StringBuilder();
-			} else if (expression.get(i).equals(")")) {
-				myStack.pop();
-				//evaluate!!!!
-			} else {
-				sb.append(expression.get(i));
-			}
-		}
-		System.out.println(expression);
+
 	}
 
 	public void why(List<String> expression) {
-		System.out.println(expression);
+		//backwards chaining
+		//once you hit root, print everything on path in reverse order that you went
+		//so have to keep track of path - also do so in order to backtrack if we go
+		//down the wrong path
 	}
 
 	public static boolean evaluateTruthValue(Rule rule) {
@@ -234,20 +325,6 @@ public class CLIPSShell {
 	}
 
 	public static void main(String[] args) {
-//		String fun = "F!!D";
-//		List<String> fun2 = parseByOperators(fun);
-//		for(int i = 0; i < fun2.size(); i++){
-//			System.out.println(i+": " + fun2.get(i));
-//		}
-		
-//		Fact f = new Fact(true, f, "fun",,,true);
-		
-//		public Fact(boolean truthValue,
-//				String variableName,
-//				String data,
-//				List<Rule> conditionsOf,
-//				List<Rule> consequentsOf,
-//				boolean isRoot)
 		CLIPSShell shell = new CLIPSShell();
 		Scanner sc = new Scanner(System.in);
 		String line = "";
