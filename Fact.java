@@ -79,7 +79,7 @@ public class Fact {
 	}
 	
 	public String toString() {
-		String s = ""+ this.variableName + " = " + this.data + "\nConditions of: " + this.conditionsOf + "\nConsequents of: " + this.consequentsOf;
+		String s = ""+ this.variableName + " = " + this.data + "\nTruth Value: " + this.truthValue + "\nisRoot: " + this.isRoot + "\nConditions of: " + this.conditionsOf + "\nConsequents of: " + this.consequentsOf;
 		return s;
 	}
 	
