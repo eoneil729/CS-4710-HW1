@@ -395,7 +395,7 @@ public class CLIPSShell {
 		//no chance of going down wrong path bc it will just result in a false answer
 		//add truth value and explanation - will add in reverse order so reverse and print at the end
 		//recursive
-		currentPath.clear();
+		rulePath.clear();
 		String truthValue = backwardsChaining(expression);
 		System.out.println(truthValue);
 //		for (Rule r : currentPath)
@@ -426,72 +426,50 @@ public class CLIPSShell {
 		return ans;
 	}
 
-	public List<Rule> currentPath = new ArrayList<Rule>();
-
+	public List<List<String>> rulePath = new ArrayList<List<String>>();
+	Map<String, Boolean> truthMap = new HashMap<String, Boolean>();
+	
 	public String backwardsChaining(List<String> expression) {
-		for (int i = 0; i < expression.size(); i++) {
-		List<String> factInCondOfRuleString;
-				for (Fact partOfExpression : factsList) {
-					if(i ==1) System.out.println(partOfExpression.getVariableName());
-					if (partOfExpression.getVariableName().equals(expression.get(i))) { //if expression is a fact
-						if (partOfExpression.getIsRoot()) {
-							if(expression.size() == 1) {
-								if (partOfExpression.getTruthValue()) {
-									return "true";
-								} else {
-									return "false";
-								}
-							}else {
-								if (partOfExpression.getTruthValue()) {
-									expression.set(expression.indexOf(partOfExpression.getVariableName()), "true");
-								} else {
-									expression.set(expression.indexOf(partOfExpression.getVariableName()), "false");
-								}
-							}
-						} else {
-							List<Rule> conseqList = partOfExpression.getConsequentsOf(); //then get the consequents of that fact
-							for (Rule ruleInConseqList : conseqList) { //go through the consequents of the fact and find the conditions
-								factInCondOfRuleString = ruleInConseqList.getConditions(); //this is the condition of the rule
-								for (Fact factInCondOfRule : factsList) {
-									for (String condition : factInCondOfRuleString) {
-										if (factInCondOfRule.getVariableName().equals(condition)) {
-//											if (partOfExpression.getIsRoot()) { //identify the symbols in condition and see isRoot
-//												currentPath.add(ruleInConseqList); //if it is a root then add it to the path
-//												System.out.println(factInCondOfRule.getVariableName() + ": " + factInCondOfRule.getTruthValue());
-//												if (factInCondOfRule.getTruthValue()) {
-//													expression.set(expression.indexOf(factInCondOfRule.getVariableName()), "true");
-//												} else {
-//													expression.set(expression.indexOf(factInCondOfRule.getVariableName()), "false");
-//												}
-//												//replace symbol with a truth value
-//											} else {
-												List<String> pak = new ArrayList<String>();
-												pak.add(condition);
-												expression.set(i,backwardsChaining(pak));
-											//}
-										}
-									}
-								}
+		boolean foundNewRule = false;
+		boolean isRoot = false;
+		List<String> chainList = new ArrayList<String>();
+		for (String exp : expression) {
+			chainList = new ArrayList<String>();
+			if (exp.equals("(") || exp.equals(")") || exp.equals("!") || exp.equals("&") || exp.equals("|")) {
+				chainList.add(exp);
+			} else {
+				do {
+					foundNewRule = false;
+					for (Rule rule : rulesList) {
+						for (Fact fact : factsList) {
+							if (fact.getVariableName().equals(exp) && (rule.getConditions().contains(fact.getVariableName()) || rule.getConsequences().contains(fact.getVariableName()))) {
+								foundNewRule = true;
+								chainList.add(rule.toString());
+								truthMap.put(fact.getVariableName(), fact.getTruthValue());
+								if (fact.getIsRoot())
+									isRoot = true;
 							}
 						}
 					}
+				} while (foundNewRule && !isRoot);
 				}
+//			Collections.reverse(chainList);
+			rulePath.add(chainList);
+			System.out.println(rulePath);
+			System.out.println(truthMap);
+		}
+		List<String> finalExpression = new ArrayList<String>();
+		for (List<String> currentPath : rulePath) {
+			System.out.println(currentPath);
+			if (currentPath.contains("(") || currentPath.contains(")") || currentPath.contains("&") || currentPath.contains("|") || currentPath.contains("!")) {
+				finalExpression.add(currentPath.get(0));
+			} else {
+				for (String rule : currentPath)
+//				boolean truthValOfFact = truthMap.get(rule.get(1));
+				System.out.println("hi");
 			}
-		int countFacts = 0;
-		System.out.println(expression);
-//		int countRoots = 0;
-		for (int i = 0; i < expression.size(); i++) { //tests if everything in the expression is a root
-			if(expression.get(i).equals("true") || expression.get(i).equals("false") ||
-					expression.get(i).equals("&") || expression.get(i).equals("|") ||
-					expression.get(i).equals("!") || expression.get(i).equals("(") || expression.get(i).equals(")"))
-				countFacts++;
 		}
-
-		if (countFacts == expression.size()) { //if everything in the expression is a root then evaluate
-			if(evaluate(expression)) return "true";
-			else return "false";
-		}
-		return "bad";
+		return "";
 	}
 
 	public static void main(String[] args) {
@@ -507,7 +485,7 @@ public class CLIPSShell {
 		shell.createNewFact("-L", "r", "a");
 
 		shell.createNewRule("p", "q");
-		shell.createNewRule("q", "r'");
+		shell.createNewRule("q", "r");
 
 
 		shell.teachTruthValue("p", "true");
