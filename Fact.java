@@ -8,6 +8,10 @@ public class Fact {
 	private List<Rule> consequentsOf;
 	private boolean isRoot;
 
+	public Fact() {
+
+	}
+
 	public Fact(boolean truthValue,
 				String variableName,
 				String data,

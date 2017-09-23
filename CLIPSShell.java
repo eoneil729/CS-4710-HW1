@@ -262,8 +262,8 @@ public class CLIPSShell {
 	}
 
 	public boolean evaluate(List<String> expression) {
-		expression.add(0, "(");
-		expression.add(expression.size(), ")");
+//		expression.add(0, "(");
+//		expression.add(expression.size(), ")");
 //		expression = addParentheses(expression);
 		Stack<String> myStack = new Stack<String>();
 		boolean truth = false;
@@ -379,41 +379,50 @@ public class CLIPSShell {
 		} while (learnedSomething);
 	}
 
-	public void query(List<String> expression) {
-		//call query (which returns truth value and explanation)
-		//extract truth value and return it
-//		List<String> truthAndExplanation = why(expression);
-
-		//should output the truth value
-//		System.out.println(truthAndExplanation.get(0));
+	public List<Fact> deepCopyFactsLists(List<Fact> factsList, List<Fact> factsListCopy) {
+		for (Fact f : factsList) {
+			Fact fCopy = new Fact();
+			fCopy.setTruthValue(f.getTruthValue());
+			fCopy.setVariableName(f.getVariableName());
+			fCopy.setData(f.getData());
+			fCopy.setConditionsOf(f.getConditionsOf());
+			fCopy.setConsequentsOf(f.getConsequentsOf());
+			fCopy.setIsRoot(f.getIsRoot());
+			factsListCopy.add(fCopy);
+		}
+		return factsListCopy;
 	}
 
-	public String why(List<String> expression) {
-		//backwards chaining
-		//once you hit root, print everything on path in reverse order that you went
-		//so have to keep track of path
-		//no chance of going down wrong path bc it will just result in a false answer
-		//add truth value and explanation - will add in reverse order so reverse and print at the end
-		//recursive
-		currentPath.clear();
-		String truthValue = backwardsChaining(expression);
-		System.out.println(truthValue);
-//		for (Rule r : currentPath)
-//		System.out.println(r);
+	public List<Rule> deepCopyRulesLists(List<Rule> rulesList, List<Rule> rulesListCopy) {
+		for (Rule r : rulesList) {
+			Rule rCopy = new Rule();
+			rCopy.setConditions(r.getConditions());
+			rCopy.setConsequences(r.getConsequences());
+			rulesListCopy.add(rCopy);
+		}
+		return rulesListCopy;
+	}
+
+	public void query(List<String> expression) {
+		List<Fact> factsListCopy = new ArrayList<Fact>();
+		factsListCopy = deepCopyFactsLists(factsList, factsListCopy);
+		List<Rule> rulesListCopy = new ArrayList<Rule>();
+		rulesListCopy = deepCopyRulesLists(rulesList, rulesListCopy);
+		learn();
+		System.out.println(evaluate(expression));
+		factsList.clear();
+		factsList = deepCopyFactsLists(factsListCopy, factsList);
+		rulesList.clear();
+		rulesList = deepCopyRulesLists(rulesListCopy, rulesList);
+	}
+
+	public void why(List<String> expression) {
+		query(expression);
+		backwardsChaining(expression);
 
 
-//		truthAndExplanation.add("I KNOW THAT" + cond.getData());
-//		truthAndExplanation.add("BECAUSE" + cond.getData() + "I KNOW THAT" + cons.getData());
-//		truthAndExplanation.add("I THUS KNOW THAT" + cond.getData());
-//		truthAndExplanation.add("I KNOW IT IS NOT TRUE THAT" + cond.getData());
-//		truthAndExplanation.add("BECAUSE IT IS NOT TRUE THAT" + cond.getData() + "I CANNOT PROVE THAT" + cons.getData());
-//		truthAndExplanation.add("THUS I CANNOT PROVE THAT" + cond.getData());
-
-//		Collections.reverse(truthAndExplanation);
-//		for (String retVal : truthAndExplanation)
-//			System.out.println(retVal);
-//		return truthAndExplanation;
-		return truthValue;
+		rulePath.clear();
+		truthMap.clear();
 	}
 
 	public boolean isExistingFact(String expression) {
@@ -426,64 +435,45 @@ public class CLIPSShell {
 		return ans;
 	}
 
-	public List<Rule> currentPath = new ArrayList<Rule>();
+	public List<List<String>> rulePath = new ArrayList<List<String>>();
+	Map<String, Boolean> truthMap = new HashMap<String, Boolean>();
 
-	public String backwardsChaining(List<String> expression) {
-		for (int i = 0; i < expression.size(); i++) {
-		List<String> factInCondOfRuleString;
-				for (Fact partOfExpression : factsList) {
-					if (partOfExpression.getVariableName().equals(expression.get(i))) { //if expression is a fact
-
-						if (partOfExpression.getIsRoot()) {
-							if(expression.size() == 1) {
-								if (partOfExpression.getTruthValue()) {
-									return "true";
-								} else {
-									return "false";
-								}
-							}else {
-								if (partOfExpression.getTruthValue()) {
-									expression.set(expression.indexOf(partOfExpression.getVariableName()), "true");
-								} else {
-									expression.set(expression.indexOf(partOfExpression.getVariableName()), "false");
-								}
+	public void backwardsChaining(List<String> expression) {
+		boolean foundNewRule = false;
+		boolean isRoot = false;
+		List<String> chainList = new ArrayList<String>();
+		for (String exp : expression) {
+			chainList = new ArrayList<String>();
+			if (exp.equals("(") || exp.equals(")") || exp.equals("!") || exp.equals("&") || exp.equals("|")) {
+				if (exp.equals("!") || exp.equals("&") || exp.equals("|"))
+					chainList.add(exp);
+			} else {
+				do {
+					foundNewRule = false;
+					for (Rule rule : rulesList) {
+						for (Fact fact : factsList) {
+							if (fact.getVariableName().equals(exp) && (rule.getConditions().contains(fact.getVariableName()) || rule.getConsequences().contains(fact.getVariableName()))) {
+								foundNewRule = true;
+								chainList.add(rule.toString());
+								truthMap.put(fact.getVariableName(), fact.getTruthValue());
+								if (fact.getIsRoot())
+									isRoot = true;
 							}
-						} else {
-
-							List<Rule> conseqList = partOfExpression.getConsequentsOf(); //then get the consequents of that fact
-							for (Rule ruleInConseqList : conseqList) { //go through the consequents of the fact and find the conditions
-								factInCondOfRuleString = ruleInConseqList.getConditions(); //this is the condition of the rule
-								for (Fact factInCondOfRule : factsList) {
-									for (String condition : factInCondOfRuleString) {
-
-										if (factInCondOfRule.getVariableName().equals(condition)) {
-												List<String> pak = new ArrayList<String>();
-												pak.add(condition);
-												expression.set(i,backwardsChaining(pak));
-											System.out.println(expression);
-
-										}
-									}
-								}
-							}
+//							if (!fact.getIsRoot()) {
+//								foundNewRule = true;
+//								chainList.add(rule.toString());
+//								truthMap.put(fact.getVariableName(), fact.getTruthValue());
+//								System.out.println("isnotroot: " + fact.getVariableName());
+//								isRoot = true;
+//							}
 						}
 					}
-				}
+				} while (foundNewRule && !isRoot);
 			}
-		int countFacts = 0;
-//		int countRoots = 0;
-		for (int i = 0; i < expression.size(); i++) { //tests if everything in the expression is a root
-			if(expression.get(i).equals("true") || expression.get(i).equals("false") ||
-					expression.get(i).equals("&") || expression.get(i).equals("|") ||
-					expression.get(i).equals("!") || expression.get(i).equals("(") || expression.get(i).equals(")"))
-				countFacts++;
+			rulePath.add(chainList);
+			System.out.println(rulePath);
+//			System.out.println(truthMap);
 		}
-
-		if (countFacts == expression.size()) { //if everything in the expression is a root then evaluate
-			if(evaluate(expression)) return "true";
-			else return "false";
-		}
-		return "bad";
 	}
 
 	public static void main(String[] args) {
@@ -504,24 +494,21 @@ public class CLIPSShell {
 
 		shell.teachTruthValue("p", "true");
 
-		List<String> list = new ArrayList<String>();
+//		for(Fact f : factsList) System.out.println(f.getVariableName() + ": " +  f.getTruthValue());
+//		shell.learn();
+//		for(Fact f : factsList) System.out.println(f.getVariableName() + ": " +  f.getTruthValue());
 
+		List<String> list = new ArrayList<String>();
 
 		list.add("p");
 		list.add("&");
 		list.add("r");
-		list.add("&");
-		list.add("r");
 
-		shell.addParentheses(list);
+		shell.why(list);
 
 		//list.add("r");
 
 		//System.out.println(shell.evaluate(list));
-
-		//System.out.println("\n" + shell.backwardsChaining(list));
-
-//		System.out.println(rulesList.get(0));
 //		System.out.println(shell.evaluate(parseByOperators("true")));
 //		shell.listVariables();
 
