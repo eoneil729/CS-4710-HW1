@@ -4,6 +4,10 @@ public class Rule {
 	private List<String> conditions;
 	private List<String> consequences;
 
+	public Rule () {
+		
+	}
+	
 	public Rule(List<String> conditions, List<String> consequences) {
 		this.conditions = conditions;
 		this.consequences = consequences;
