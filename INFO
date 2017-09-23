@@ -1,4 +1,5 @@
 name = AI Homework 1
+collaborators: Pak Hin Luu (pl4me) and Ellie O'Neil (ebo6jt)
 java version = 1.6.0_65
 interpreter = javac 1.6.0_65
 main functions: CLIPSShell.java

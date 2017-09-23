@@ -2,6 +2,8 @@
  * CS 4710 HW 1
  * Pak Hin Luu - pl4me
  * Ellie O'Neil - ebo6jt
+ *
+ * Discussed with Josh Peters and Ryan Dean
  */
 
 import java.util.*;
@@ -199,72 +201,10 @@ public class CLIPSShell {
 		}
 	}
 
-	/**
-	 * Preserves order of operations
-	 */
-	public List<String> addParentheses(List<String> expression) {
-		for (int i = 0; i < expression.size(); i++) {
-			if (expression.get(i).equals("!")) {
-				for (int j = 0; j < factsList.size(); j++) {
-					if (factsList.get(j).getVariableName().equals(expression.get(i + 1))) {
-						expression.add(i, "(");
-						expression.add(i + 3, ")");
-					}
-				}
-			}
-		}
-		for (int i = 0; i < expression.size(); i++) {
-			boolean leftIsFact = false;
-			boolean rightIsFact = false;
-			if (expression.get(i).equals("&") || expression.get(i).equals("|")) {
-				if (isExistingFact(expression.get(i - 1))) {
-					leftIsFact = true;
-				}
-				if (isExistingFact(expression.get(i + 1))) {
-					rightIsFact = true;
-				}
-			}
-			if (leftIsFact && rightIsFact) {
-				expression.add(i - 1, "(");
-				expression.add(i + 3, ")");
-				i++;
-			}
-			if (leftIsFact && !rightIsFact) {
-				expression.add(i - 1, "(");
-				int count = 0;
-				int j = i + 2;
-				do {
-					if (expression.get(j).equals("("))
-						count++;
-					if (expression.get(j).equals(")"))
-						count--;
-					j++;
-				} while (count > 0);
-				i++;
-			}
-//			if (!leftIsFact && rightIsFact) {
-//				expression.add(i + 1, "(");
-//				int count = 0;
-//				int j = i - 2;
-//				do {
-//					if (expression.get(j).equals("("))
-//						count++;
-//					if (expression.get(j).equals(")"))
-//						count--;
-//					j--;
-//				} while (count > 0);
-//				i++;
-//			}
-		}
-		for (String s : expression)
-			System.out.print(s);
-		return expression;
-	}
-
 	public boolean evaluate(List<String> expression) {
-//		expression.add(0, "(");
-//		expression.add(expression.size(), ")");
-//		expression = addParentheses(expression);
+		expression.add(0, "(");
+		expression.add(expression.size(), ")");
+		expression = addParentheses(expression);
 		Stack<String> myStack = new Stack<String>();
 		boolean truth = false;
 		List<String> expressionList = new ArrayList<String>();
@@ -356,7 +296,6 @@ public class CLIPSShell {
 		return !val;
 	}
 
-	// fix setting learnedSomething to false problem
 	public void learn() {
 		boolean learnedSomething;
 		boolean conditionTruthValue;
@@ -417,10 +356,20 @@ public class CLIPSShell {
 	}
 
 	public void why(List<String> expression) {
-		query(expression);
-		backwardsChaining(expression);
-
-
+		System.out.println(query(expression));
+		//backwardsChaining(expression);
+		System.out.println(rulePath);
+		for(List<String> currentPath : rulePath) {
+			for(String currentRuleString: currentPath) {
+				Rule currentRule = searchForRule(currentRuleString);
+				for(String factString: currentRule.getConditions()) {
+					Fact currentFact = searchForFacts(factString);
+					if(currentFact.getTruthValue()) {
+						System.out.println("I KNOW THAT " + currentFact.getData());
+					}
+				}
+			}
+		}
 		rulePath.clear();
 		truthMap.clear();
 	}
@@ -442,8 +391,10 @@ public class CLIPSShell {
 		boolean foundNewRule = false;
 		boolean isRoot = false;
 		List<String> chainList = new ArrayList<String>();
+		List<Rule> alreadySeen = new ArrayList<Rule>();
 		for (String exp : expression) {
 			chainList = new ArrayList<String>();
+			alreadySeen = new ArrayList<Rule>();
 			if (exp.equals("(") || exp.equals(")") || exp.equals("!") || exp.equals("&") || exp.equals("|")) {
 				if (exp.equals("!") || exp.equals("&") || exp.equals("|"))
 					chainList.add(exp);
@@ -452,30 +403,160 @@ public class CLIPSShell {
 					foundNewRule = false;
 					for (Rule rule : rulesList) {
 						for (Fact fact : factsList) {
-							if (fact.getVariableName().equals(exp) && (rule.getConditions().contains(fact.getVariableName()) || rule.getConsequences().contains(fact.getVariableName()))) {
+							if (!alreadySeen.contains(rule) && fact.getVariableName().equals(exp) && (rule.getConditions().contains(fact.getVariableName()) || rule.getConsequences().contains(fact.getVariableName()))) {
 								foundNewRule = true;
+								alreadySeen.add(rule);
 								chainList.add(rule.toString());
+								List<String> expConditions = rule.getConditions();
+								exp = expConditions.get(2);
 								truthMap.put(fact.getVariableName(), fact.getTruthValue());
-								if (fact.getIsRoot())
+								if (fact.getIsRoot()) {
 									isRoot = true;
+								}
 							}
-//							if (!fact.getIsRoot()) {
-//								foundNewRule = true;
-//								chainList.add(rule.toString());
-//								truthMap.put(fact.getVariableName(), fact.getTruthValue());
-//								System.out.println("isnotroot: " + fact.getVariableName());
-//								isRoot = true;
-//							}
 						}
 					}
 				} while (foundNewRule && !isRoot);
 			}
+			Collections.reverse(chainList);
 			rulePath.add(chainList);
-			System.out.println(rulePath);
-//			System.out.println(truthMap);
 		}
 	}
 
+	/**
+	 * Preserves order of operations
+	 */
+	public List<String> addParentheses(List<String> expression) {
+		for (int i = 0; i < expression.size(); i++) {
+			if (expression.get(i).equals("!")) {
+				for (int j = 0; j < factsList.size(); j++) {
+					if (factsList.get(j).getVariableName().equals(expression.get(i + 1))) {
+						expression.add(i, "(");
+						expression.add(i + 3, ")");
+						i++;
+					}
+				}
+			}
+		}
+		for (int i = 0; i < expression.size(); i++) {
+			boolean leftIsFact = false;
+			boolean rightIsFact = false;
+			if (expression.get(i).equals("&") || expression.get(i).equals("|")) {
+				if (isExistingFact(expression.get(i - 1))) {
+					leftIsFact = true;
+				}
+				if (isExistingFact(expression.get(i + 1))) {
+					rightIsFact = true;
+				}
+//				if(i+2 < expression.size() - 2) {
+//				if (expression.get(i + 2).equals("!")) {
+//					rightIsFact = true;
+//				}
+//				}
+			}
+			if (leftIsFact && rightIsFact) {
+				expression.add(i - 1, "(");
+				expression.add(i + 3, ")");
+				i++;
+			}
+			if (leftIsFact && !rightIsFact) {
+				expression.add(i - 1, "(");
+				i++;
+				int count = 0;
+				int j = i + 1;
+				do {
+					if (expression.get(j).equals("(")) {
+						count++;
+					}
+					if (expression.get(j).equals(")")) {
+						count--;
+					}
+					j++;
+				} while (count > 0);
+				expression.add(j, ")");
+			}
+			if (!leftIsFact && rightIsFact) {
+				expression.add(i + 2, ")");
+				int count = 0;
+				int j = i-1;
+				do {
+					if (expression.get(j).equals(")")) {
+						count++;
+						//System.out.println(j + ": " + count);
+					}
+					if (expression.get(j).equals("(")) {
+						count--;
+						//System.out.println(j + ": " + count);
+					}
+					if(j >0) j--;
+				} while (count > 0);
+				expression.add(j, "(");
+				i++;
+			}
+		}
+		
+//		for (int i = 0; i < expression.size(); i++) {
+//			boolean leftIsFact = false;
+//			boolean rightIsFact = false;
+//			if (expression.get(i).equals("|")) {
+//				if (isExistingFact(expression.get(i - 1))) {
+//					leftIsFact = true;
+//				}
+//				if (isExistingFact(expression.get(i + 1))) {
+//					rightIsFact = true;
+//				}
+//				if(i+2 < expression.size() - 2) {
+//					if (expression.get(i + 2).equals("!")) {
+//						rightIsFact = true;
+//				}
+//				}
+//			}
+//			if (leftIsFact && rightIsFact) {
+//				expression.add(i - 1, "(");
+//				expression.add(i + 3, ")");
+//				i++;
+//			}
+//			if (leftIsFact && !rightIsFact) {
+//				expression.add(i - 1, "(");
+//				i++;
+//				int count = 0;
+//				int j = i + 1;
+//				do {
+//					if (expression.get(j).equals("(")) {
+//						count++;
+//					}
+//					if (expression.get(j).equals(")")) {
+//						count--;
+//					}
+//					j++;
+//				} while (count > 0);
+//				expression.add(j, ")");
+//			}
+//			if (!leftIsFact && rightIsFact) {
+//				expression.add(i + 2, ")");
+//				int count = 0;
+//				int j = i-1;
+//				do {
+//					if (expression.get(j).equals(")")) {
+//						count++;
+//						//System.out.println(j + ": " + count);
+//					}
+//					if (expression.get(j).equals("(")) {
+//						count--;
+//						//System.out.println(j + ": " + count);
+//					}
+//					if(j >0) j--;
+//				} while (count > 0);
+//				expression.add(j, "(");
+//				i++;
+//			}
+//		}
+//		for (String s : expression)
+//			System.out.print(s);
+//		System.out.print("\n");
+		return expression;
+	}
+	
 	public static void main(String[] args) {
 		CLIPSShell shell = new CLIPSShell();
 		Scanner sc = new Scanner(System.in);
@@ -491,7 +572,6 @@ public class CLIPSShell {
 		shell.createNewRule("p", "q");
 		shell.createNewRule("q", "r");
 
-
 		shell.teachTruthValue("p", "true");
 
 //		for(Fact f : factsList) System.out.println(f.getVariableName() + ": " +  f.getTruthValue());
@@ -501,17 +581,17 @@ public class CLIPSShell {
 		List<String> list = new ArrayList<String>();
 
 		list.add("p");
-		list.add("&");
-		list.add("r");
+		list.add("|");
+		list.add("q");
 
 		shell.why(list);
 
-		//list.add("r");
 
 		//System.out.println(shell.evaluate(list));
 //		System.out.println(shell.evaluate(parseByOperators("true")));
 //		shell.listVariables();
 
 
+//		shell.addParentheses(list);
 	}
 }
