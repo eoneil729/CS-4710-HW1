@@ -344,38 +344,18 @@ public class CLIPSShell {
 		return rulesListCopy;
 	}
 
-	public void query(List<String> expression) {
+	public boolean query(List<String> expression) {
 		List<Fact> factsListCopy = new ArrayList<Fact>();
 		factsListCopy = deepCopyFactsLists(factsList, factsListCopy);
 		List<Rule> rulesListCopy = new ArrayList<Rule>();
 		rulesListCopy = deepCopyRulesLists(rulesList, rulesListCopy);
 		learn();
-		System.out.println(evaluate(expression));
+		//System.out.println(evaluate(expression));
 		factsList.clear();
 		factsList = deepCopyFactsLists(factsListCopy, factsList);
 		rulesList.clear();
 		rulesList = deepCopyRulesLists(rulesListCopy, rulesList);
-	}
-
-	public void why(List<String> expression) {
-		query(expression);
-		backwardsChaining(expression);
-		System.out.println(rulePath);
-		
-
-//		truthAndExplanation.add("I KNOW THAT" + cond.getData());
-//		truthAndExplanation.add("BECAUSE" + cond.getData() + "I KNOW THAT" + cons.getData());
-//		truthAndExplanation.add("I THUS KNOW THAT" + cond.getData());
-//		truthAndExplanation.add("I KNOW IT IS NOT TRUE THAT" + cond.getData());
-//		truthAndExplanation.add("BECAUSE IT IS NOT TRUE THAT" + cond.getData() + "I CANNOT PROVE THAT" + cons.getData());
-//		truthAndExplanation.add("THUS I CANNOT PROVE THAT" + cond.getData());
-
-//		Collections.reverse(truthAndExplanation);
-//		for (String retVal : truthAndExplanation)
-//			System.out.println(retVal);
-//		return truthAndExplanation;
-		rulePath.clear();
-		truthMap.clear();
+		return evaluate(expression);
 	}
 
 	public boolean isExistingFact(String expression) {
@@ -549,9 +529,48 @@ public class CLIPSShell {
 //				i++;
 //			}
 //		}
-		for (String s : expression)
-			System.out.print(s);
+//		for (String s : expression)
+//			System.out.print(s);
 		return expression;
+	}
+	
+	public Rule searchForRule (String s) {
+		Rule ans = new Rule();
+		for (Rule r: rulesList) {
+			if (r.toString().equals(s)) {
+				ans = r;
+			}
+		}
+		return ans;
+	}
+	
+	public Fact searchForFacts (String s) {
+		Fact ans = new Fact();
+		for (Fact f: factsList) {
+			if (f.getVariableName().equals(s)) {
+				ans = f;
+			}
+		}
+		return ans;
+	}
+	
+	public void why(List<String> expression) {
+		System.out.println(query(expression));
+		//backwardsChaining(expression);
+		System.out.println(rulePath);
+		for(List<String> currentPath : rulePath) {
+			for(String currentRuleString: currentPath) {
+				Rule currentRule = searchForRule(currentRuleString);
+				for(String factString: currentRule.getConditions()) {
+					Fact currentFact = searchForFacts(factString);
+					if(currentFact.getTruthValue()) {
+						System.out.println("I KNOW THAT " + currentFact.getData());
+					}
+				}
+			}
+		}
+		rulePath.clear();
+		truthMap.clear();
 	}
 	
 	public static void main(String[] args) {
@@ -566,21 +585,14 @@ public class CLIPSShell {
 		shell.createNewFact("-L", "q", "a");
 		shell.createNewFact("-L", "r", "a");
 //
-//		shell.createNewRule("p", "r");
-//		shell.createNewRule("p", "q");
-//		shell.createNewRule("q", "r");
-//		shell.teachTruthValue("p", "true");
+		shell.createNewRule("p", "q");
+		shell.createNewRule("q", "r");
+		shell.teachTruthValue("p", "true");
 		List<String> list = new ArrayList();
 		list.add("p");
-		list.add("|");
-		list.add("!");
-
-		list.add("q");
-
 		list.add("&");
-		list.add("q");
-
-
-		shell.addParentheses(list);
+		list.add("r");
+		pathsList = 
+		shell.why(list);
 	}
 }
