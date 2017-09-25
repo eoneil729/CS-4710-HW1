@@ -4,6 +4,8 @@
  * Ellie O'Neil - ebo6jt
  *
  * Discussed with Josh Peters and Ryan Dean
+ *
+ * Disclaimer: why function works when tested in main, but sometimes fails when read through stdin
  */
 
 import java.util.*;
@@ -28,7 +30,7 @@ public class CLIPSShell {
 				}
 			} else if (input.contains("->")) {
 				String[] inputArr = input.split(" -> ");
-				String leftInput = inputArr[0].substring(inputArr[0].lastIndexOf("Teach")+1);
+				String leftInput = inputArr[0].substring(inputArr[0].lastIndexOf("Teach")+6);
 				createNewRule(leftInput, inputArr[1]);
 			}
 		} else if (input.equals("List")) {
@@ -92,11 +94,9 @@ public class CLIPSShell {
 			Fact f;
 			if (isRoot.equals("-R")) {
 				f = new Fact(false, variableName, data, conditionsOf, consequentsOf, true);
-				//System.out.println(f.toString());
 				factsList.add(f);
 			} else if (isRoot.equals("-L")){
 				f = new Fact(false, variableName, data, conditionsOf, consequentsOf, false);
-				//System.out.println(f.toString());
 				factsList.add(f);
 			}
 
@@ -342,36 +342,19 @@ public class CLIPSShell {
 		return rulesListCopy;
 	}
 
-	public void query(List<String> expression) {
+	public boolean query(List<String> expression) {
 		List<Fact> factsListCopy = new ArrayList<Fact>();
 		factsListCopy = deepCopyFactsLists(factsList, factsListCopy);
 		List<Rule> rulesListCopy = new ArrayList<Rule>();
 		rulesListCopy = deepCopyRulesLists(rulesList, rulesListCopy);
 		learn();
-		System.out.println(evaluate(expression));
+		boolean truth = evaluate(expression);
+		System.out.println(truth);
 		factsList.clear();
 		factsList = deepCopyFactsLists(factsListCopy, factsList);
 		rulesList.clear();
 		rulesList = deepCopyRulesLists(rulesListCopy, rulesList);
-	}
-
-	public void why(List<String> expression) {
-		System.out.println(query(expression));
-		//backwardsChaining(expression);
-		System.out.println(rulePath);
-		for(List<String> currentPath : rulePath) {
-			for(String currentRuleString: currentPath) {
-				Rule currentRule = searchForRule(currentRuleString);
-				for(String factString: currentRule.getConditions()) {
-					Fact currentFact = searchForFacts(factString);
-					if(currentFact.getTruthValue()) {
-						System.out.println("I KNOW THAT " + currentFact.getData());
-					}
-				}
-			}
-		}
-		rulePath.clear();
-		truthMap.clear();
+		return truth;
 	}
 
 	public boolean isExistingFact(String expression) {
@@ -385,19 +368,20 @@ public class CLIPSShell {
 	}
 
 	public List<List<String>> rulePath = new ArrayList<List<String>>();
-	Map<String, Boolean> truthMap = new HashMap<String, Boolean>();
 
 	public void backwardsChaining(List<String> expression) {
 		boolean foundNewRule = false;
-		boolean isRoot = false;
 		List<String> chainList = new ArrayList<String>();
 		List<Rule> alreadySeen = new ArrayList<Rule>();
 		for (String exp : expression) {
 			chainList = new ArrayList<String>();
 			alreadySeen = new ArrayList<Rule>();
 			if (exp.equals("(") || exp.equals(")") || exp.equals("!") || exp.equals("&") || exp.equals("|")) {
-				if (exp.equals("!") || exp.equals("&") || exp.equals("|"))
+				if (exp.equals("!") || exp.equals("&") || exp.equals("|")) {
+					chainList = new ArrayList<String>();
 					chainList.add(exp);
+					rulePath.add(chainList);
+				}
 			} else {
 				do {
 					foundNewRule = false;
@@ -408,18 +392,14 @@ public class CLIPSShell {
 								alreadySeen.add(rule);
 								chainList.add(rule.toString());
 								List<String> expConditions = rule.getConditions();
-								exp = expConditions.get(2);
-								truthMap.put(fact.getVariableName(), fact.getTruthValue());
-								if (fact.getIsRoot()) {
-									isRoot = true;
-								}
+								exp = expConditions.get(expConditions.lastIndexOf("(")+1);
 							}
 						}
 					}
-				} while (foundNewRule && !isRoot);
+				} while (foundNewRule);
+				Collections.reverse(chainList);
+				rulePath.add(chainList);
 			}
-			Collections.reverse(chainList);
-			rulePath.add(chainList);
 		}
 	}
 
@@ -448,11 +428,6 @@ public class CLIPSShell {
 				if (isExistingFact(expression.get(i + 1))) {
 					rightIsFact = true;
 				}
-//				if(i+2 < expression.size() - 2) {
-//				if (expression.get(i + 2).equals("!")) {
-//					rightIsFact = true;
-//				}
-//				}
 			}
 			if (leftIsFact && rightIsFact) {
 				expression.add(i - 1, "(");
@@ -482,11 +457,9 @@ public class CLIPSShell {
 				do {
 					if (expression.get(j).equals(")")) {
 						count++;
-						//System.out.println(j + ": " + count);
 					}
 					if (expression.get(j).equals("(")) {
 						count--;
-						//System.out.println(j + ": " + count);
 					}
 					if(j >0) j--;
 				} while (count > 0);
@@ -494,104 +467,154 @@ public class CLIPSShell {
 				i++;
 			}
 		}
-		
-//		for (int i = 0; i < expression.size(); i++) {
-//			boolean leftIsFact = false;
-//			boolean rightIsFact = false;
-//			if (expression.get(i).equals("|")) {
-//				if (isExistingFact(expression.get(i - 1))) {
-//					leftIsFact = true;
-//				}
-//				if (isExistingFact(expression.get(i + 1))) {
-//					rightIsFact = true;
-//				}
-//				if(i+2 < expression.size() - 2) {
-//					if (expression.get(i + 2).equals("!")) {
-//						rightIsFact = true;
-//				}
-//				}
-//			}
-//			if (leftIsFact && rightIsFact) {
-//				expression.add(i - 1, "(");
-//				expression.add(i + 3, ")");
-//				i++;
-//			}
-//			if (leftIsFact && !rightIsFact) {
-//				expression.add(i - 1, "(");
-//				i++;
-//				int count = 0;
-//				int j = i + 1;
-//				do {
-//					if (expression.get(j).equals("(")) {
-//						count++;
-//					}
-//					if (expression.get(j).equals(")")) {
-//						count--;
-//					}
-//					j++;
-//				} while (count > 0);
-//				expression.add(j, ")");
-//			}
-//			if (!leftIsFact && rightIsFact) {
-//				expression.add(i + 2, ")");
-//				int count = 0;
-//				int j = i-1;
-//				do {
-//					if (expression.get(j).equals(")")) {
-//						count++;
-//						//System.out.println(j + ": " + count);
-//					}
-//					if (expression.get(j).equals("(")) {
-//						count--;
-//						//System.out.println(j + ": " + count);
-//					}
-//					if(j >0) j--;
-//				} while (count > 0);
-//				expression.add(j, "(");
-//				i++;
-//			}
-//		}
-//		for (String s : expression)
-//			System.out.print(s);
-//		System.out.print("\n");
 		return expression;
 	}
-	
+
+	public Rule searchForRule (String s) {
+		Rule ans = new Rule();
+		for (Rule r: rulesList) {
+			if (r.toString().equals(s)) {
+				ans = r;
+			}
+		}
+		return ans;
+	}
+
+	public Fact searchForFacts (String s) {
+		Fact ans = new Fact();
+		for (Fact f: factsList) {
+			if (f.getVariableName().equals(s)) {
+				ans = f;
+			}
+		}
+		return ans;
+	}
+
+	public boolean isExistingRule(String expression) {
+		boolean ans = false;
+		for (Rule r: rulesList) {
+			if (r.toString().equals(expression)) {
+				ans = true;
+			}
+		}
+		return ans;
+	}
+
+	public void why(List<String> expression) {
+
+		List<Fact> factsListCopy = new ArrayList<Fact>();
+		factsListCopy = deepCopyFactsLists(factsList, factsListCopy);
+		List<Rule> rulesListCopy = new ArrayList<Rule>();
+		rulesListCopy = deepCopyRulesLists(rulesList, rulesListCopy);
+		learn();
+		boolean ellie = query(expression);
+		System.out.println(ellie);
+		backwardsChaining(expression);
+		boolean isRoot = false;
+		if (!rulePath.isEmpty()) {
+			for (List<String> currentPath : rulePath) {
+				if (currentPath.get(0).equals("&")) System.out.println("AND");
+				for (String currentRuleString : currentPath) {
+					if (isExistingRule(currentRuleString)) {
+						Rule currentRule = searchForRule(currentRuleString);
+						if (!currentRule.getConditions().isEmpty()) {
+							for (String factString : currentRule.getConditions()) {
+								Fact currentFact = searchForFacts(factString);
+								if (currentFact.getTruthValue()) {
+									System.out.println("I KNOW THAT " + currentFact.getData());
+									isRoot = currentFact.getIsRoot();
+								} else if (isExistingFact(currentFact.getVariableName())) {
+									System.out.println("I KNOW IT IS NOT TRUE THAT " + currentFact.getData());
+									isRoot = currentFact.getIsRoot();
+								}
+
+
+							}
+						}
+						if (!isRoot) {
+							System.out.print("BECAUSE ");
+							List<String> conditions = currentRule.getConditions();
+							for (String currentFactString2 : conditions) {
+								if (currentFactString2.equals("&")) {
+									System.out.println("\n AND ");
+								}
+								if (currentFactString2.equals("|")) {
+									System.out.print(" OR ");
+								}
+								Fact currentFact = searchForFacts(currentFactString2);
+								if (currentFact.getTruthValue()) {
+									System.out.print("I KNOW THAT " + currentFact.getData());
+								} else if (isExistingFact(currentFact.getVariableName())) {
+									System.out.print("I KNOW IT IS NOT TRUE THAT " + currentFact.getData());
+								}
+							}
+							List<String> consequents = currentRule.getConsequences();
+							System.out.print(" I KNOW THAT ");
+							for (String currentFactString2 : consequents) {
+								if (currentFactString2.equals("&")) {
+									System.out.println("\n AND ");
+								}
+								if (currentFactString2.equals("|")) {
+									System.out.print(" OR ");
+								}
+								Fact currentFact = searchForFacts(currentFactString2);
+								if (currentFact.getTruthValue()) {
+									System.out.print(currentFact.getData());
+								} else if (isExistingFact(currentFact.getVariableName())) {
+									System.out.print(currentFact.getData());
+								}
+							}
+						}
+						isRoot = false;
+
+					}
+				}
+
+			}
+		}
+			boolean answer = ellie;
+			if(answer) {
+				System.out.print("\nI THUS KNOW THAT (");
+				for(String fact : expression) {
+				if(isExistingFact(fact)) {
+					System.out.print(searchForFacts(fact).getData());
+				} else if (fact.equals("&")) {
+					System.out.print(" AND ");
+				} else if (fact.equals("|")) {
+					System.out.print(" OR ");
+				}
+			} }else {
+				System.out.print("\nTHUS I CANNOT PROVE THAT (");
+				for (String fact : expression) {
+					if (isExistingFact(fact)) {
+						System.out.print(searchForFacts(fact).getData());
+					} else if (fact.equals("&")) {
+						System.out.print(" AND ");
+					} else if (fact.equals("|")) {
+						System.out.print(" OR ");
+					}
+				}
+		}
+		System.out.print(")");
+
+
+
+
+		factsList.clear();
+		factsList = deepCopyFactsLists(factsListCopy, factsList);
+		rulesList.clear();
+		rulesList = deepCopyRulesLists(rulesListCopy, rulesList);
+
+		rulePath.clear();
+	}
+
 	public static void main(String[] args) {
 		CLIPSShell shell = new CLIPSShell();
 		Scanner sc = new Scanner(System.in);
 		String line = "";
-//		while (sc.hasNextLine() && !(line = sc.nextLine()).equals("Exit")) {
-//			shell.determineInputInstruction(line);
-//		}
+		while (sc.hasNextLine() && !(line = sc.nextLine()).equals("Exit")) {
+			shell.determineInputInstruction(line);
+		}
 
-		shell.createNewFact("-R", "p", "a");
-		shell.createNewFact("-L", "q", "a");
-		shell.createNewFact("-L", "r", "a");
-
-		shell.createNewRule("p", "q");
-		shell.createNewRule("q", "r");
-
-		shell.teachTruthValue("p", "true");
-
-//		for(Fact f : factsList) System.out.println(f.getVariableName() + ": " +  f.getTruthValue());
-//		shell.learn();
-//		for(Fact f : factsList) System.out.println(f.getVariableName() + ": " +  f.getTruthValue());
-
-		List<String> list = new ArrayList<String>();
-
-		list.add("p");
-		list.add("|");
-		list.add("q");
-
-		shell.why(list);
-
-
-		//System.out.println(shell.evaluate(list));
-//		System.out.println(shell.evaluate(parseByOperators("true")));
-//		shell.listVariables();
-
-
-//		shell.addParentheses(list);
 	}
 }

@@ -28,6 +28,7 @@ public class Rule {
 	public void setConsequences(List<String> consequences) {
 		this.consequences = consequences;
 	}
+
 	
 	public String toString() {
 		String s = "" + conditions + " -> " + consequences;
